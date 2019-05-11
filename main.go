@@ -105,6 +105,48 @@ type List struct {
 	Name string `json:"name"`
 }
 
+func createDescription(task Task, board Board) string {
+	description := task.Description + "\n\n"
+
+	checklists := task.Checklists(board.Checklists)
+	for j := 0; j < len(checklists); j++ {
+		for k := 0; k < len(checklists[j].CheckItems); k++ {
+			if checklists[j].CheckItems[k].State == "complete" {
+				description += "- [x] "
+			} else {
+				description += "- [ ] "
+			}
+			description += checklists[j].CheckItems[k].Name + "\n"
+		}
+	}
+
+	for j := 0; j < len(task.Attachments); j++ {
+		description += "\n![" + task.Attachments[j].Name + "](" + task.Attachments[j].Url + ")"
+	}
+
+	var comments []string
+	description += "\n\n__Actions:__\n"
+	actions := task.Actions(board.Actions)
+	for j := 0; j < len(actions); j++ {
+		description += "- " + actions[j].Type + " (" + actions[j].Date + ")\n"
+
+		if actions[j].Type == "commentCard" {
+			comments = append(comments, actions[j].Data.Comment)
+		}
+	}
+
+	if len(comments) > 0 {
+		description += "\n__Comments:__\n"
+	}
+	for j := 0; j < len(comments); j++ {
+		description += "- " + comments[j]
+	}
+
+	description += "\n\n_This task was imported from [" + task.Url + "](" + task.Url + ")_"
+
+	return description
+}
+
 func main() {
 	boardJson, err := os.Open("example-trello-tasks.json")
 	if err != nil {
@@ -121,55 +163,14 @@ func main() {
 	for i := 0; i < len(board.Tasks); i++ {
 		task := board.Tasks[i]
 
-		description := ""
-
 		fmt.Print("\n\n---------------------------------\n\n")
 
 		fmt.Printf("Id: %d\n", task.Id)
 		fmt.Println("Title: " + task.Title)
 
-		description += task.Description + "\n\n"
-
 		list, _ := task.List(board.Lists)
 		fmt.Println("List: " + list.Name)
 
-		checklists := task.Checklists(board.Checklists)
-		for j := 0; j < len(checklists); j++ {
-			for k := 0; k < len(checklists[j].CheckItems); k++ {
-				if checklists[j].CheckItems[k].State == "complete" {
-					description += "- [x] "
-				} else {
-					description += "- [ ] "
-				}
-				description += checklists[j].CheckItems[k].Name + "\n"
-			}
-		}
-
-		for j := 0; j < len(task.Attachments); j++ {
-			description += "\n![" + task.Attachments[j].Name + "](" + task.Attachments[j].Url + ")"
-		}
-
-		var comments []string
-
-		description += "\n\n__Actions:__\n"
-		actions := task.Actions(board.Actions)
-		for j := 0; j < len(actions); j++ {
-			description += "- " + actions[j].Type + " (" + actions[j].Date + ")\n"
-
-			if actions[j].Type == "commentCard" {
-				comments = append(comments, actions[j].Data.Comment)
-			}
-		}
-
-		if len(comments) > 0 {
-			description += "\n__Comments:__\n"
-		}
-		for j := 0; j < len(comments); j++ {
-			description += "- " + comments[j]
-		}
-
-		description += "\n\n_This task was imported from [" + task.Url + "](" + task.Url + ")_"
-
-		fmt.Println(description)
+		fmt.Println(createDescription(task, board))
 	}
 }
