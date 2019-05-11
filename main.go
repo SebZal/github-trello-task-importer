@@ -92,7 +92,8 @@ type Action struct {
 }
 
 type ActionData struct {
-	Task ActionDataTask `json:"card"`
+	Task    ActionDataTask `json:"card"`
+	Comment string         `json:"text"`
 }
 
 type ActionDataTask struct {
@@ -144,6 +145,10 @@ func main() {
 		actions := task.Actions(board.Actions)
 		for j := 0; j < len(actions); j++ {
 			fmt.Println("Action: " + actions[j].Type + " " + actions[j].Date)
+
+			if actions[j].Type == "commentCard" {
+				fmt.Println("Comment: " + actions[j].Data.Comment)
+			}
 		}
 	}
 }
