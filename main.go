@@ -121,12 +121,14 @@ func main() {
 	for i := 0; i < len(board.Tasks); i++ {
 		task := board.Tasks[i]
 
+		description := ""
+
 		fmt.Print("\n\n---------------------------------\n\n")
 
 		fmt.Printf("Id: %d\n", task.Id)
 		fmt.Println("Title: " + task.Title)
-		fmt.Println("Description: " + task.Description)
-		fmt.Println("Url: " + task.Url)
+
+		description += task.Description + "\n\n"
 
 		list, _ := task.List(board.Lists)
 		fmt.Println("List: " + list.Name)
@@ -134,21 +136,40 @@ func main() {
 		checklists := task.Checklists(board.Checklists)
 		for j := 0; j < len(checklists); j++ {
 			for k := 0; k < len(checklists[j].CheckItems); k++ {
-				fmt.Println("Checklist item: " + checklists[j].CheckItems[k].State + " " + checklists[j].CheckItems[k].Name)
+				if checklists[j].CheckItems[k].State == "complete" {
+					description += "- [x] "
+				} else {
+					description += "- [ ] "
+				}
+				description += checklists[j].CheckItems[k].Name + "\n"
 			}
 		}
 
 		for j := 0; j < len(task.Attachments); j++ {
-			fmt.Println("Attachment: " + task.Attachments[j].Name + " " + task.Attachments[j].Url)
+			description += "\n![" + task.Attachments[j].Name + "](" + task.Attachments[j].Url + ")"
 		}
 
+		var comments []string
+
+		description += "\n\n__Actions:__\n"
 		actions := task.Actions(board.Actions)
 		for j := 0; j < len(actions); j++ {
-			fmt.Println("Action: " + actions[j].Type + " " + actions[j].Date)
+			description += "- " + actions[j].Type + " (" + actions[j].Date + ")\n"
 
 			if actions[j].Type == "commentCard" {
-				fmt.Println("Comment: " + actions[j].Data.Comment)
+				comments = append(comments, actions[j].Data.Comment)
 			}
 		}
+
+		if len(comments) > 0 {
+			description += "\n__Comments:__\n"
+		}
+		for j := 0; j < len(comments); j++ {
+			description += "- " + comments[j]
+		}
+
+		description += "\n\n_This task was imported from [" + task.Url + "](" + task.Url + ")_"
+
+		fmt.Println(description)
 	}
 }
