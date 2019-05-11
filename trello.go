@@ -160,7 +160,10 @@ func ReadBoard(jsonPath string) (Board, error) {
 		return board, err
 	}
 
-	json.Unmarshal(bytes, &board)
+	err = json.Unmarshal(bytes, &board)
+	if err != nil {
+		return board, err
+	}
 
 	return board, nil
 }

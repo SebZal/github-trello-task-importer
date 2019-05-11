@@ -1,11 +1,44 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
 )
 
+type Config struct {
+	GitHubClientId      string `json:"gitHubClientId"`
+	GitHubClientSecret  string `json:"gitHubClientSecret"`
+	TrelloBoardJsonPath string `json:"trelloBoardJsonPath"`
+}
+
+func ReadConfig() Config {
+	configJson, err := os.Open("config.json")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer configJson.Close()
+
+	bytes, err := ioutil.ReadAll(configJson)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	var config Config
+
+	err = json.Unmarshal(bytes, &config)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return config
+}
+
 func main() {
-	board, err := ReadBoard("example-trello-tasks.json")
+	config := ReadConfig()
+
+	board, err := ReadBoard(config.TrelloBoardJsonPath)
 	if err != nil {
 		fmt.Println(err)
 		return
