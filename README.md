@@ -22,7 +22,7 @@ Create file config.json in the following format:
 ```
 {
     "gitHubToken": "<OAuth token>",
-    "trelloBoardJsonPath": "<exported json file>",
+    "trelloBoardJsonPath": "<path of exported json file>",
     "user": "<GitHub user>",
     "repository": "<GitHub repository>"
 }
