@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"sort"
 )
 
 type Config struct {
@@ -44,6 +45,10 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+
+	sort.Slice(board.Tasks, func(i, j int) bool {
+		return board.Tasks[i].Id < board.Tasks[j].Id
+	})
 
 	for i := 0; i < len(board.Tasks); i++ {
 		task := board.Tasks[i]
