@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -30,7 +31,9 @@ func CreateGitHubIssues(owner string, repo string, token string, issues []Create
 	url := "http://api.github.com/repos/" + owner + "/" + repo + "/issues"
 
 	for i := 0; i < len(issues); i++ {
-		err := sendRequest(url, "POST", url, owner, issues[i])
+		issue := issues[i]
+		fmt.Printf("Creating issue (%d/%d) %s\n", i, len(issues), issue.Title)
+		err := sendRequest(url, "POST", url, owner, issue)
 		if err != nil {
 			return nil
 		}
@@ -42,6 +45,7 @@ func CreateGitHubIssues(owner string, repo string, token string, issues []Create
 func CloseGitHubIssues(owner string, repo string, token string, issueIds []int) error {
 	for i := 0; i < len(issueIds); i++ {
 		id := strconv.Itoa(issueIds[i])
+		fmt.Printf("Closing issue (%d/%d)\n", i, len(issueIds))
 		url := "http://api.github.com/repos/" + owner + "/" + repo + "/issues/" + id
 		request := EditIssueRequest{State: Closed}
 		err := sendRequest(url, "PATCH", token, owner, request)
