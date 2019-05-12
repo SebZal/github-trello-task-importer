@@ -8,9 +8,10 @@ import (
 )
 
 type Config struct {
-	GitHubClientId      string `json:"gitHubClientId"`
-	GitHubClientSecret  string `json:"gitHubClientSecret"`
+	GitHubToken         string `json:"gitHubToken"`
 	TrelloBoardJsonPath string `json:"trelloBoardJsonPath"`
+	User                string `json:"user"`
+	Repository          string `json:"repository"`
 }
 
 func ReadConfig() Config {
