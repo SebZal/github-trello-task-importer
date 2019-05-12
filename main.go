@@ -15,36 +15,43 @@ type Config struct {
 	Repository          string `json:"repository"`
 }
 
-func ReadConfig() Config {
+func ReadConfig() (Config, error) {
+	var config Config
+
 	configJson, err := os.Open("config.json")
 	if err != nil {
-		fmt.Println(err)
+		return config, err
 	}
 	defer configJson.Close()
 
 	bytes, err := ioutil.ReadAll(configJson)
 	if err != nil {
-		fmt.Println(err)
+		return config, err
 	}
-
-	var config Config
 
 	err = json.Unmarshal(bytes, &config)
 	if err != nil {
-		fmt.Println(err)
+		return config, err
 	}
 
-	return config
+	return config, nil
 }
 
 func main() {
-	config := ReadConfig()
+	config, err := ReadConfig()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
 	board, err := ReadBoard(config.TrelloBoardJsonPath)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+
+	var issues []CreateIssueRequest
+	var issueIdsToClose []int
 
 	sort.Slice(board.Tasks, func(i, j int) bool {
 		return board.Tasks[i].Id < board.Tasks[j].Id
@@ -53,14 +60,40 @@ func main() {
 	for i := 0; i < len(board.Tasks); i++ {
 		task := board.Tasks[i]
 
-		fmt.Print("\n\n---------------------------------\n\n")
+		labels := []string{}
+		for j := 0; j < len(task.Labels); j++ {
+			labels = append(labels, task.Labels[j].Name)
+		}
 
-		fmt.Printf("Id: %d\n", task.Id)
-		fmt.Println("Title: " + task.Title)
+		request := CreateIssueRequest{
+			Title:     task.Title,
+			Body:      board.CreateDescription(task),
+			Assignees: []string{config.User},
+			Labels:    labels,
+		}
 
-		list, _ := task.List(board.Lists)
-		fmt.Println("List: " + list.Name)
+		issues = append(issues, request)
 
-		fmt.Println(board.CreateDescription(task))
+		list, err := task.List(board.Lists)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		if list.Name == "Done" || list.Name == "Testing" {
+			issueIdsToClose = append(issueIdsToClose, task.Id)
+		}
+	}
+
+	err = CreateGitHubIssues(config.User, config.Repository, config.GitHubToken, issues)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	err = CloseGitHubIssues(config.User, config.Repository, config.GitHubToken, issueIdsToClose)
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
 }
