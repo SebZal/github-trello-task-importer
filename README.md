@@ -4,7 +4,7 @@ A simple and naive tool for importing Trello tasks to GitHub issues. This tool w
 
 ## Assumptions
 
-- Tasks are imported to a GitHub project where no issues have been created before.
+- Tasks are imported to a GitHub project where no issues or pull requests have been created before.
 - Issues are closed if they are in list "Done" or "Testing" in Trello.
 - User is assignee for all issues.
 - User is the owner of the repository.
